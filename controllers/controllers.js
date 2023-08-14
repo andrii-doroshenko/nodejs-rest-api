@@ -1,5 +1,4 @@
 const { HttpError } = require("../helpers");
-const Joi = require("joi");
 const {
   listContacts,
   getContactById,
@@ -7,12 +6,7 @@ const {
   updateContact,
   removeContact,
 } = require("../models/contacts");
-
-const contactSchema = Joi.object({
-  name: Joi.string().required(),
-  email: Joi.string().email().required(),
-  phone: Joi.string().required(),
-});
+const { contactSchema } = require("../schemas/contactSchema");
 
 const getAllContactsController = async (req, res, next) => {
   try {
@@ -38,21 +32,6 @@ const getContactController = async (req, res, next) => {
   }
 };
 
-const createContactController = async (req, res, next) => {
-  try {
-    const { error, value } = contactSchema.validate(req.body);
-
-    if (error) {
-      throw HttpError(400, error.message);
-    }
-
-    const newContact = await addContact(req.body);
-    res.status(201).json(newContact);
-  } catch (error) {
-    next(error);
-  }
-};
-
 const deleteContactController = async (req, res, next) => {
   try {
     const { contactId } = req.params;
@@ -63,6 +42,21 @@ const deleteContactController = async (req, res, next) => {
     }
 
     res.json({ message: "contact deleted" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const createContactController = async (req, res, next) => {
+  try {
+    const { error, value } = contactSchema.validate(req.body);
+
+    if (error) {
+      throw HttpError(400, error.message);
+    }
+
+    const newContact = await addContact(req.body);
+    res.status(201).json(newContact);
   } catch (error) {
     next(error);
   }
