@@ -1,16 +1,13 @@
 const { HttpError } = require("../helpers");
 const {
-  listContacts,
-  getContactById,
-  addContact,
-  updateContact,
-  removeContact,
-} = require("../models/contacts");
-const { contactSchema } = require("../schemas/contactSchema");
+  contactFavoriteSchema,
+  contactValidationSchema,
+  ContactModel,
+} = require("../schemas/contactSchema");
 
 const getAllContactsController = async (req, res, next) => {
   try {
-    const contactsList = await listContacts();
+    const contactsList = await ContactModel.find();
     res.json(contactsList);
   } catch (error) {
     next(error);
@@ -20,7 +17,7 @@ const getAllContactsController = async (req, res, next) => {
 const getContactController = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const contactById = await getContactById(contactId);
+    const contactById = await ContactModel.findById(contactId);
 
     if (!contactById) {
       throw HttpError(404, "Contact not found");
@@ -35,7 +32,7 @@ const getContactController = async (req, res, next) => {
 const deleteContactController = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const removedId = await removeContact(contactId);
+    const removedId = await ContactModel.findByIdAndRemove(contactId);
 
     if (!removedId) {
       throw HttpError(404, "Not found");
@@ -49,13 +46,13 @@ const deleteContactController = async (req, res, next) => {
 
 const createContactController = async (req, res, next) => {
   try {
-    const { error, value } = contactSchema.validate(req.body);
+    const { error, value } = contactValidationSchema.validate(req.body);
 
     if (error) {
       throw HttpError(400, error.message);
     }
 
-    const newContact = await addContact(req.body);
+    const newContact = await ContactModel.create(req.body);
     res.status(201).json(newContact);
   } catch (error) {
     next(error);
@@ -64,14 +61,43 @@ const createContactController = async (req, res, next) => {
 
 const updateContacController = async (req, res, next) => {
   try {
-    const { error, value } = contactSchema.validate(req.body);
+    const { error, value } = contactValidationSchema.validate(req.body);
 
     if (error) {
       throw HttpError(400, `missing fields: ${error.message}`);
     }
 
     const { contactId } = req.params;
-    const updatedContact = await updateContact(contactId, req.body);
+    const updatedContact = await ContactModel.findByIdAndUpdate(
+      contactId,
+      req.body,
+      { new: true }
+    );
+
+    if (!updatedContact) {
+      throw HttpError(404, "Contact not found");
+    }
+
+    res.json(updatedContact);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateFavoriteByIdController = async (req, res, next) => {
+  try {
+    const { error, value } = contactFavoriteSchema.validate(req.body);
+
+    if (error) {
+      throw HttpError(400, `missing fields: ${error.message}`);
+    }
+
+    const { contactId } = req.params;
+    const updatedContact = await ContactModel.findByIdAndUpdate(
+      contactId,
+      req.body,
+      { new: true }
+    );
 
     if (!updatedContact) {
       throw HttpError(404, "Contact not found");
@@ -89,4 +115,5 @@ module.exports = {
   createContactController,
   deleteContactController,
   updateContacController,
+  updateFavoriteByIdController,
 };
