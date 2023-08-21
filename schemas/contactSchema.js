@@ -1,11 +1,15 @@
 const Joi = require("joi");
+const { Schema, model } = require("mongoose");
+const { handleMongooseError } = require("../helpers");
 
-const contactSchema = Joi.object({
-  name: Joi.string().alphanum().min(3).max(30).required(),
+const contactValidationSchema = Joi.object({
+  name: Joi.string()
+    .regex(/^[a-zA-Z\s]{3,30}$/)
+    .required(),
   email: Joi.string()
     .email({
       minDomainSegments: 2,
-      tlds: { allow: ["com", "net", "org", "ua"] },
+      tlds: { allow: ["com", "net", "org", "ua", "ca"] },
     })
     .required(),
   phone: Joi.string()
@@ -15,4 +19,36 @@ const contactSchema = Joi.object({
     .required(),
 });
 
-module.exports = { contactSchema };
+const contactFavoriteSchema = Joi.object({
+  favorite: Joi.boolean().required(),
+});
+
+const contactDatabaseSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: [true, "Set name for contact"],
+    },
+    email: {
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
+    favorite: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { versionKey: false }
+);
+
+contactDatabaseSchema.post("save", handleMongooseError);
+
+const ContactModel = model("contact", contactDatabaseSchema);
+
+module.exports = {
+  contactValidationSchema,
+  contactFavoriteSchema,
+  ContactModel,
+};
