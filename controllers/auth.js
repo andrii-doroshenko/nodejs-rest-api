@@ -4,6 +4,10 @@ const { schemas, UserModel } = require("../schemas/userSchema");
 
 const { HttpError } = require("../helpers");
 
+var jwt = require("jsonwebtoken");
+
+const { PRIVATE_KEY } = process.env;
+
 const register = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -55,7 +59,10 @@ const login = async (req, res, next) => {
       throw HttpError(401, "Email or password is wrong");
     }
 
-    const token = "cniawicnn123.cmknoiawin.mcij1i231nc";
+    const payload = {
+      id: existingUser._id,
+    };
+    const token = jwt.sign(payload, PRIVATE_KEY, { expiresIn: "23h" });
 
     res.json({ token });
   } catch (error) {
