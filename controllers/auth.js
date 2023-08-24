@@ -34,6 +34,36 @@ const register = async (req, res, next) => {
   }
 };
 
+const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const { error, value } = schemas.loginSchema.validate(req.body);
+
+    if (error) {
+      throw HttpError(400, error.message);
+    }
+
+    const existingUser = await UserModel.findOne({ email });
+
+    if (!existingUser) {
+      throw HttpError(401, "Email or password is wrong");
+    }
+
+    const passwordCompare = bcrypt.compare(password, existingUser.password);
+
+    if (!passwordCompare) {
+      throw HttpError(401, "Email or password is wrong");
+    }
+
+    const token = "cniawicnn123.cmknoiawin.mcij1i231nc";
+
+    res.json({ token });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
+  login,
 };
