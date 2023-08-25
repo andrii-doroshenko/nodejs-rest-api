@@ -1,3 +1,4 @@
 const { isValidId } = require("./isValidId");
+const tokenAuthMiddleware = require("./tokenAuthMiddleware");
 
-module.exports = { isValidId };
+module.exports = { isValidId, tokenAuthMiddleware };
