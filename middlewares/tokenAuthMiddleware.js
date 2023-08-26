@@ -14,16 +14,16 @@ const tokenAuthMiddleware = async (req, res, next) => {
 
   try {
     const { id } = jwt.verify(token, PRIVATE_KEY);
-    const user = UserModel.findById(id);
+    const user = await UserModel.findById(id);
 
     if (!user) {
       next(HttpError(401, "Not authorized"));
     }
+    req.user = user;
+    next();
   } catch (error) {
     next(HttpError(401, "Not authorized"));
   }
-
-  next();
 };
 
 module.exports = tokenAuthMiddleware;
