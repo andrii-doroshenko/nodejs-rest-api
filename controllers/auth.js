@@ -70,7 +70,18 @@ const login = async (req, res, next) => {
   }
 };
 
+const getCurrentUser = async (req, res, next) => {
+  try {
+    const { email, subscription } = req.user;
+
+    res.json({ email, subscription });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
+  getCurrentUser,
 };
