@@ -62,7 +62,9 @@ const login = async (req, res, next) => {
     const payload = {
       id: existingUser._id,
     };
+
     const token = jwt.sign(payload, PRIVATE_KEY, { expiresIn: "23h" });
+    await UserModel.findByIdAndUpdate(existingUser._id, { token });
 
     res.json({ token });
   } catch (error) {
@@ -80,8 +82,20 @@ const getCurrentUser = async (req, res, next) => {
   }
 };
 
+const logoutMiddleware = async (req, res, next) => {
+  try {
+    const { _id } = req.user;
+    await UserModel.findByIdAndUpdate(_id, { token: null });
+
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
   getCurrentUser,
+  logoutMiddleware,
 };

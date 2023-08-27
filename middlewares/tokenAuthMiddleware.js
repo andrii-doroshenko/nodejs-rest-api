@@ -16,10 +16,11 @@ const tokenAuthMiddleware = async (req, res, next) => {
     const { id } = jwt.verify(token, PRIVATE_KEY);
     const user = await UserModel.findById(id);
 
-    if (!user) {
+    if (!user || !user.token || user.token !== token) {
       next(HttpError(401, "Not authorized"));
     }
     req.user = user;
+
     next();
   } catch (error) {
     next(HttpError(401, "Not authorized"));
