@@ -8,7 +8,13 @@ const {
 const getAllContactsController = async (req, res, next) => {
   try {
     const { _id: owner } = req.user;
-    const contactsList = await ContactModel.find({ owner });
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (page - 1) * limit;
+    const contactsList = await ContactModel.find(
+      { owner },
+      "-createdAt -updatedAt",
+      { skip, limit }
+    );
     res.json(contactsList);
   } catch (error) {
     next(error);
