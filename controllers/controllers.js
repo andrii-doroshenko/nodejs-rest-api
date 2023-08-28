@@ -7,7 +7,16 @@ const {
 
 const getAllContactsController = async (req, res, next) => {
   try {
-    const contactsList = await ContactModel.find();
+    const { _id: owner } = req.user;
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (page - 1) * limit;
+    
+    const contactsList = await ContactModel.find(
+      { owner },
+      "-createdAt -updatedAt",
+      { skip, limit }
+    );
+
     res.json(contactsList);
   } catch (error) {
     next(error);
@@ -52,7 +61,8 @@ const createContactController = async (req, res, next) => {
       throw HttpError(400, error.message);
     }
 
-    const newContact = await ContactModel.create(req.body);
+    const { _id: owner } = req.user;
+    const newContact = await ContactModel.create({ ...req.body, owner });
     res.status(201).json(newContact);
   } catch (error) {
     next(error);
