@@ -9,6 +9,10 @@ const {
 
 router.post("/register", ctrls.register);
 
+router.get("/verify/:verificationToken", ctrls.verifyEmail);
+
+router.post("/verify", ctrls.resendVerifyEmail);
+
 router.post("/login", ctrls.login);
 
 router.post("/logout", tokenAuthMiddleware, ctrls.logoutMiddleware);
