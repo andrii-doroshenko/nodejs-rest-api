@@ -6,11 +6,11 @@ const { schemas, UserModel } = require("../schemas/userSchema");
 const jimp = require("jimp");
 const { nanoid } = require("nanoid");
 
-const { HttpError, sendEmail } = require("../helpers");
+const { HttpError, sendEmail, createEmail } = require("../helpers");
 
 const jwt = require("jsonwebtoken");
 
-const { PRIVATE_KEY, BASE_URL } = process.env;
+const { PRIVATE_KEY } = process.env;
 
 const avatarsFolder = path.join(__dirname, "../", "public", "avatars");
 
@@ -18,16 +18,15 @@ const register = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const hashPassword = await bcrypt.hash(password, 8);
-    const { error, value } = schemas.registerSchema.validate(req.body);
     const avatarURL = gravatar.url(email);
     const verificationToken = nanoid();
 
+    const { error, value } = schemas.registerSchema.validate(req.body);
     if (error) {
       throw HttpError(400, error.message);
     }
 
     const existingUser = await UserModel.findOne({ email });
-
     if (existingUser) {
       throw HttpError(409, "Email in use");
     }
@@ -39,13 +38,8 @@ const register = async (req, res, next) => {
       verificationToken,
     });
 
-    const verifyEmail = {
-      to: email,
-      subject: "Verify email",
-      html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${verificationToken}">Click verify Email</a>`,
-    };
-
-    await sendEmail(verifyEmail);
+    const recipient = createEmail(email, verificationToken);
+    await sendEmail(recipient);
 
     res.status(201).json({
       email: newUser.email,
@@ -131,13 +125,8 @@ const resendVerifyEmail = async (req, res, next) => {
       throw HttpError(400, "Verification has already been passed");
     }
 
-    const verifyEmail = {
-      to: email,
-      subject: "Verify email",
-      html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${user.verificationToken}">Click verify Email</a>`,
-    };
-
-    await sendEmail(verifyEmail);
+    const recipiaet = createEmail(email, user.verificationToken);
+    await sendEmail(recipiaet);
 
     res.status(200).json({ message: "Verification email sent" });
   } catch (error) {
