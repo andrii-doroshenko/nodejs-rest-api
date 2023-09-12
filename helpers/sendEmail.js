@@ -2,15 +2,14 @@
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
-const { META_PASS, META_USER, BASE_URL } = process.env;
+const { GMAIL_PASS, GMAIL_USER, BASE_URL } = process.env;
 
 const config = {
-  host: "smtp.meta.ua",
-  port: 465,
+  service: 'gmail',
   secure: true,
   auth: {
-    user: META_USER,
-    pass: META_PASS,
+    user: GMAIL_USER,
+    pass: GMAIL_PASS,
   },
 };
 
@@ -25,7 +24,7 @@ const createEmail = (recipient, verificationToken) => {
 };
 
 const sendEmail = async (data) => {
-  const email = { ...data, from: META_USER };
+  const email = { ...data, from: GMAIL_USER };
   
   try {
     const info = await transporter.sendMail(email);
